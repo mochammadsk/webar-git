@@ -1,14 +1,14 @@
 const db = require("../models");
-const User = db.user;
+const Admin = db.admin;
 
 exports.create = (req, res) => {
-  User.create(req.body)
-    .then(() => res.send({ message: "Data succesfully input!" }))
+  Admin.create(req.body)
+    .then(() => res.send({ message: "Data entered successfully!" }))
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 exports.findAll = (req, res) => {
-  User.find()
+  Admin.find()
     .then((data) => res.send(data))
     .catch((err) => res.status(500).send({ message: err.message }));
 };
@@ -16,7 +16,7 @@ exports.findAll = (req, res) => {
 exports.show = (req, res) => {
   const id = req.params.id;
 
-  User.findById(id)
+  Admin.findById(id)
     .then((data) => res.send(data))
     .catch((err) => res.status(500).send({ message: err.message }));
 };
@@ -24,12 +24,12 @@ exports.show = (req, res) => {
 exports.update = (req, res) => {
   const id = req.params.id;
 
-  User.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+  Admin.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then((data) => {
       if (!data) {
-        res.status(404).send({ message: "Data can't update!" });
+        res.status(404).send({ message: "Data can't be updated!" });
       }
-      res.send({ message: "Data succesfully update!" });
+      res.send({ message: "Data updated successfully!" });
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
@@ -37,12 +37,12 @@ exports.update = (req, res) => {
 exports.delete = (req, res) => {
   const id = req.params.id;
 
-  User.findOneAndDelete(id)
+  Admin.findOneAndDelete(id)
     .then((data) => {
       if (!data) {
-        res.status(404).send({ message: "Data can't delete!" });
+        res.status(404).send({ message: "Data can't be deleted!" });
       }
-      res.send({ message: "Data succesfully delete!" });
+      res.send({ message: "Data deleted successfully!" });
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };

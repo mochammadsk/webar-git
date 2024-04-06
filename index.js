@@ -12,7 +12,6 @@ app.use(cors(corsOption));
 app.use(express.json());
 
 // Connection to database
-
 const mongooseConfig = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -20,14 +19,14 @@ const mongooseConfig = {
 
 db.mongoose
   .connect(db.url, mongooseConfig)
-  .then(() => console.log("Database connected!"))
+  .then(() => console.log("Connected database!"))
   .catch((err) => {
-    console.log(`Gagal konek ${err.message}`);
+    console.log(`Failed to connect - ${err.message}`);
     process.exit();
   });
 
 // Call routes user
-require("./app/routes/user.routes")(app);
+require("./app/routes/admin.routes")(app);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

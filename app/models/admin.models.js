@@ -19,5 +19,5 @@ module.exports = (mongoose) => {
     return object;
   });
 
-  return mongoose.model("user", schema);
+  return mongoose.model("admin", schema);
 };
