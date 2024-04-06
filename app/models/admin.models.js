@@ -1,23 +1,20 @@
-const { mongo } = require("mongoose");
+const mongoose = require("mongoose");
 
-module.exports = (mongoose) => {
-  const schema = mongoose.Schema(
-    {
-      nim: Number,
-      nama_lengkap: String,
-      university: String,
-    },
-    {
-      timestamps: true,
-    }
-  );
+const adminSchema = mongoose.Schema(
+  {
+    nim: { type: Number, required: true },
+    nama_lengkap: { type: String, required: true },
+    university: { type: String, required: true },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-  schema.method("toJSON", function () {
-    const { __v, _id, ...object } = this.toObject();
-    object.id = _id;
+adminSchema.method("toJSON", function () {
+  const { __v, _id, ...object } = this.toObject();
+  object.id = _id;
+  return object;
+});
 
-    return object;
-  });
-
-  return mongoose.model("admin", schema);
-};
+module.exports = mongoose.model("Admin", adminSchema);

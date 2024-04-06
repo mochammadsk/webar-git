@@ -1,6 +1,8 @@
-const express = require("express");
 const cors = require("cors");
-const db = require("./app/models/index");
+const express = require("express");
+const mongoose = require("mongoose");
+const db = require("./app/config/database");
+const bodyParser = require("body-parser");
 
 const app = express();
 const corsOption = {
@@ -11,22 +13,32 @@ const corsOption = {
 app.use(cors(corsOption));
 app.use(express.json());
 
-// Connection to database
-const mongooseConfig = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-};
+app.use(
+  bodyParser.json({
+    extended: true,
+    limit: "50mb",
+  })
+);
 
-db.mongoose
-  .connect(db.url, mongooseConfig)
-  .then(() => console.log("Connected database!"))
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+    limit: "50mb",
+  })
+);
+
+// Connection to database
+mongoose
+  .connect(db.url, db.mongooseConfig)
+  .then(() => console.log("Connected to database!"))
   .catch((err) => {
     console.log(`Failed to connect - ${err.message}`);
     process.exit();
   });
 
-// Call routes user
+// Call routes
 require("./app/routes/admin.routes")(app);
+// require("./app/routes/user.routes")(app);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
