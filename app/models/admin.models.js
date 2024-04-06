@@ -17,4 +17,4 @@ adminSchema.method("toJSON", function () {
   return object;
 });
 
-module.exports = mongoose.model("Admin", adminSchema);
+module.exports = mongoose.model("admin", adminSchema);

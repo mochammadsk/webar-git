@@ -1,8 +1,8 @@
 const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
-const db = require("./app/config/database");
 const bodyParser = require("body-parser");
+const db = require("./app/config/database");
 
 const app = express();
 const corsOption = {
@@ -38,7 +38,7 @@ mongoose
 
 // Call routes
 require("./app/routes/admin.routes")(app);
-// require("./app/routes/user.routes")(app);
+require("./app/routes/user.routes")(app);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
