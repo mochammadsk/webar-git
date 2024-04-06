@@ -9,5 +9,12 @@ module.exports = (app) => {
       .catch((err) => res.json(err));
   });
 
+  r.post("/login", (req, res) => {
+    user
+      .login(req.body)
+      .then((result) => res.json(result))
+      .catch((err) => res.json(err));
+  });
+
   app.use("/user", r);
 };

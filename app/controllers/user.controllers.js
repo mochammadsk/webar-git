@@ -27,3 +27,20 @@ exports.register = (data) =>
       })
       .catch(() => reject(response.commonErrorMsg));
   });
+
+exports.login = (data) =>
+  new Promise((resolve, reject) => {
+    User.findOne({
+      userName: data.userName,
+    }).then((user) => {
+      if (user) {
+        if (bcrypt.compareSync(data.password, user.password)) {
+          resolve(response.commonResult(user));
+        } else {
+          reject(response.commonErrorMsg("Wrong password!"));
+        }
+      } else {
+        reject(response.commonErrorMsg("Username not found!"));
+      }
+    });
+  });
