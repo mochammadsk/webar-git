@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web AR Editor</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.0.8/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body>
+    <h1>Web AR Editor</h1>
+    <!-- Form untuk membuat konten AR -->
+    <form id="arForm">
+      <label for="title">Title:</label>
+      <input type="text" id="title" name="title" /><br /><br />
+      <label for="description">Description:</label><br />
+      <textarea id="description" name="description"></textarea><br /><br />
+      <!-- Tombol untuk submit form -->
+      <input type="submit" value="Create AR Content" />
+
+      <!-- <a-scene embedded arjs>
+        <a-marker preset="hiro">
+          <a-box position="0 0.5 0" material="color: red;"></a-box>
+        </a-marker>
+        <a-entity camera></a-entity>
+      </a-scene> -->
+    </form>
+  </body>
+</html>
