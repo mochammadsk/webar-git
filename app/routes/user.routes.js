@@ -16,5 +16,8 @@ module.exports = (app) => {
       .catch((err) => res.json(err));
   });
 
+  r.get("/", user.findAll);
+  r.delete("/:id", user.delete);
+
   app.use("/user", r);
 };
