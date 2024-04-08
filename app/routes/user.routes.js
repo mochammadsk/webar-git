@@ -19,5 +19,8 @@ module.exports = (app) => {
   r.get("/", user.findAll);
   r.delete("/:id", user.delete);
 
+  r.get("/auth/google", user.googleAuthRedirect);
+  r.get("/auth/google/callback", user.googleAuthCallback);
+
   app.use("/user", r);
 };
