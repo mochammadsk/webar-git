@@ -1,7 +1,8 @@
 const User = require("../models/user.models");
 const response = require("../config/response");
-const argon2 = require("argon2");
 const { google } = require("googleapis");
+const argon2 = require("argon2");
+
 require("dotenv").config();
 
 // Login Google
@@ -33,15 +34,22 @@ exports.googleAuthCallback = async (req, res) => {
       .oauth2({ version: "v2", auth: oauth2Client })
       .userinfo.get();
 
+    const userData = {
+      email: userInfo.data.email,
+      namaLengkap: userInfo.data.name,
+      userName: null,
+    };
+
     // Simpan informasi pengguna ke dalam database
     User.findOneAndUpdate(
       { email: userInfo.data.email }, // Cari pengguna berdasarkan email
-      userInfo.data,
+      // { namaLengkap: userInfo.data.name }, // Simpan nama lengkap pengguna
+      userData,
       { upsert: true, new: true } // Untuk membuat entri baru jika tidak ditemukan
     )
       .then((user) => {
         console.log("User Info:", user);
-        res.send("Authentication successful!");
+        res.redirect("/user/input-username");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -50,6 +58,32 @@ exports.googleAuthCallback = async (req, res) => {
   } catch (error) {
     console.error("Error:", error);
     res.status(500).send("Authentication failed!");
+  }
+};
+
+exports.renderInputUsernameForm = (req, res) => {
+  res.render("username");
+};
+
+exports.saveUsername = async (req, res) => {
+  const { username } = req.body;
+  try {
+    // Perbarui username pengguna dalam database
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.params.userId }, // Anda mungkin perlu menggunakan ID pengguna di sini
+      { userName: username },
+      { new: true } // Untuk mengembalikan dokumen yang diperbarui
+    );
+
+    // Periksa apakah pengguna ditemukan dan perbarui berhasil
+    if (updatedUser) {
+      res.status(200).redirect("Username updated successfully!");
+    } else {
+      res.status(404).send("User not found!");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Failed to update username!");
   }
 };
 

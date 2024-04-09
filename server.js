@@ -1,35 +1,7 @@
-const cors = require("cors");
-const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
+const app = require("./app");
 const db = require("./app/config/database");
-const path = require("path");
-
-const app = express();
-const PORT = 8000;
-
-const corsOption = {
-  origin: "*",
-};
-
-// Register cors middelware
-app.use(cors(corsOption));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
-app.use(
-  bodyParser.json({
-    extended: true,
-    limit: "50mb",
-  })
-);
-
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-    limit: "50mb",
-  })
-);
+const mongoose = require("mongoose");
+const http = require("http");
 
 // Connection to database
 mongoose
@@ -40,13 +12,7 @@ mongoose
     process.exit();
   });
 
-// Call routes
-require("./app/routes/admin.routes")(app);
-require("./app/routes/user.routes")(app);
-require("./app/routes/ar.routes")(app);
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "app/views", "index.html"));
-});
-
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+// Create server port
+const PORT = 8000;
+const server = http.createServer(app);
+server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
