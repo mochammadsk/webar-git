@@ -1,4 +1,4 @@
-const Admin = require("../models/admin.models");
+const Admin = require("../models/user.models");
 
 exports.create = (req, res) => {
   Admin.create(req.body)

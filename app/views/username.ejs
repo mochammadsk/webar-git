@@ -6,8 +6,15 @@
     <title>Input Username Form</title>
   </head>
   <body>
-    <h1>Input Your Username</h1>
+    <h3>Input Username</h3>
     <form action="/user/save-username" method="POST">
+      <input
+        type="email"
+        name="email"
+        placeholder="Email"
+        value="<%= userData.email %>"
+        readonly
+      />
       <input type="text" name="username" placeholder="Enter your username" />
       <button type="submit">Submit</button>
     </form>

@@ -40,12 +40,14 @@ exports.googleAuthCallback = async (req, res) => {
       userName: null,
     };
 
+    // Simpan informasi pengguna ke dalam session
+    req.session.userData = userData;
+
     // Simpan informasi pengguna ke dalam database
     User.findOneAndUpdate(
-      { email: userInfo.data.email }, // Cari pengguna berdasarkan email
-      // { namaLengkap: userInfo.data.name }, // Simpan nama lengkap pengguna
+      { email: userInfo.data.email },
       userData,
-      { upsert: true, new: true } // Untuk membuat entri baru jika tidak ditemukan
+      { upsert: true, new: true } // Membuat entri baru jika tidak ditemukan
     )
       .then((user) => {
         console.log("User Info:", user);
@@ -62,15 +64,16 @@ exports.googleAuthCallback = async (req, res) => {
 };
 
 exports.renderInputUsernameForm = (req, res) => {
-  res.render("username");
+  const userData = req.session.userData || {};
+  res.render("username", { userData });
 };
 
 exports.saveUsername = async (req, res) => {
   const { username } = req.body;
   try {
-    // Perbarui username pengguna dalam database
+    // Perbarui username pengguna dalam database menggunakan email dari session
     const updatedUser = await User.findOneAndUpdate(
-      { _id: req.params.userId }, // Anda mungkin perlu menggunakan ID pengguna di sini
+      { email: req.session.userData.email },
       { userName: username },
       { new: true } // Untuk mengembalikan dokumen yang diperbarui
     );
