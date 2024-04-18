@@ -22,6 +22,7 @@
     "http": "^0.0.1-security",
     "mongodb": "^6.5.0",
     "mongoose": "^8.2.4",
+    "passport": "^0.7.0",
     "path": "^0.12.7"
   },
   "devDependencies": {
