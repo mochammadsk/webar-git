@@ -68,29 +68,6 @@ exports.renderInputUsernameForm = (req, res) => {
   res.render("username", { userData });
 };
 
-exports.saveUsername = async (req, res) => {
-  const { username } = req.body;
-  try {
-    // Perbarui username pengguna dalam database menggunakan email dari session
-    const updatedUser = await User.findOneAndUpdate(
-      { email: req.session.userData.email },
-      { userName: username },
-      { new: true } // Untuk mengembalikan dokumen yang diperbarui
-    );
-
-    // Periksa apakah pengguna ditemukan dan perbarui berhasil
-    if (updatedUser) {
-      res.status(200).redirect("Username updated successfully!");
-    } else {
-      res.status(404).send("User not found!");
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Failed to update username!");
-  }
-};
-
-// Register Account
 exports.register = (data) =>
   new Promise((resolve, reject) => {
     User.findOne({ userName: data.userName })

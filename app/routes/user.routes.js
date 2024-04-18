@@ -23,7 +23,7 @@ module.exports = (app) => {
   r.get("/auth/google/callback", user.googleAuthCallback);
 
   r.get("/input-username", user.renderInputUsernameForm);
-  r.post("/save-username", user.saveUsername);
+  // r.post("/save-username", user.saveUsername);
 
   app.use("/user", r);
 };
