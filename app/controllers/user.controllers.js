@@ -34,24 +34,15 @@ exports.googleAuthCallback = async (req, res) => {
       .oauth2({ version: "v2", auth: oauth2Client })
       .userinfo.get();
 
-    const userData = {
-      email: userInfo.data.email,
-      namaLengkap: userInfo.data.name,
-      userName: null,
-    };
-
-    // Simpan informasi pengguna ke dalam session
-    req.session.userData = userData;
-
     // Simpan informasi pengguna ke dalam database
     User.findOneAndUpdate(
-      { email: userInfo.data.email },
-      userData,
-      { upsert: true, new: true } // Membuat entri baru jika tidak ditemukan
+      { email: userInfo.data.email }, // Cari pengguna berdasarkan email
+      userInfo.data,
+      { upsert: true, new: true } // Untuk membuat entri baru jika tidak ditemukan
     )
       .then((user) => {
         console.log("User Info:", user);
-        res.redirect("/user/input-username");
+        res.send("Authentication successful!");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -61,11 +52,6 @@ exports.googleAuthCallback = async (req, res) => {
     console.error("Error:", error);
     res.status(500).send("Authentication failed!");
   }
-};
-
-exports.renderInputUsernameForm = (req, res) => {
-  const userData = req.session.userData || {};
-  res.render("username", { userData });
 };
 
 exports.register = (data) =>

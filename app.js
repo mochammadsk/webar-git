@@ -47,6 +47,5 @@ app.set("views", path.join(__dirname, "app/views"));
 // Call routes
 require("./app/routes/admin.routes")(app);
 require("./app/routes/user.routes")(app);
-require("./app/routes/ar.routes")(app);
 
 module.exports = app;
