@@ -36,7 +36,7 @@ exports.googleAuthCallback = async (req, res) => {
 
     // Simpan informasi pengguna ke dalam database
     User.findOneAndUpdate(
-      { email: userInfo.data.email }, // Cari pengguna berdasarkan email
+      { email: userInfo.data.email, fullName: userInfo.data.name, role: 2 },
       userInfo.data,
       { upsert: true, new: true } // Untuk membuat entri baru jika tidak ditemukan
     )
@@ -111,6 +111,19 @@ exports.login = (data) =>
 exports.findAll = (req, res) => {
   User.find()
     .then((data) => res.send(data))
+    .catch((err) => res.status(500).send({ message: err.message }));
+};
+
+exports.update = (req, res) => {
+  const id = req.params.id;
+
+  User.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+    .then((data) => {
+      if (!data) {
+        res.status(404).send({ message: "Data can't be updated!" });
+      }
+      res.send({ message: "Data updated successfully!" });
+    })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
