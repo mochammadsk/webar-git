@@ -11,4 +11,10 @@ const subscriptionSchema = new mongoose.Schema(
   }
 );
 
+subscriptionSchema.method("toJSON", function () {
+  const { __v, _id, ...object } = this.toObject();
+  object.id = _id;
+  return object;
+});
+
 module.exports = mongoose.model("subscription", subscriptionSchema);
