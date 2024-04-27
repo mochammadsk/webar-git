@@ -48,5 +48,6 @@ app.set("views", path.join(__dirname, "app/views"));
 require("./app/routes/admin.routes")(app);
 require("./app/routes/user.routes")(app);
 require("./app/routes/product.routes")(app);
+require("./app/routes/subscription.routes")(app);
 
 module.exports = app;
