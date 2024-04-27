@@ -1,4 +1,4 @@
-const Product = require("../models/Product");
+const Product = require("../models/product.models");
 const Subscription = require("../models/subscription.models");
 
 exports.subscribe = async (req, res) => {
