@@ -2,7 +2,7 @@ module.exports = (app) => {
   const admin = require("../controllers/admin.controllers");
   const r = require("express").Router();
 
-  // Register Account
+  // Register account
   r.post("/register", (req, res) => {
     admin
       .create(req.body)

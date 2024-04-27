@@ -1,6 +1,6 @@
 const authService = require("../controllers/user.controllers");
 
-// Handler untuk rute login
+// Handler login routes
 exports.handleLogin = async (req, res) => {
   try {
     const response = await authService.login(req.body);

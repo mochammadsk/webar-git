@@ -7,55 +7,6 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-// Login Google
-const OAuth2 = google.auth.OAuth2;
-const oauth2Client = new OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  "http://localhost:8000/user/auth/google/callback"
-);
-
-exports.googleAuthRedirect = (req, res) => {
-  const authUrl = oauth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope: [
-      "https://www.googleapis.com/auth/userinfo.profile",
-      "https://www.googleapis.com/auth/userinfo.email",
-    ],
-    include_granted_scopes: true,
-  });
-  res.redirect(authUrl);
-};
-
-exports.googleAuthCallback = async (req, res) => {
-  const { code } = req.query;
-  try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-    const userInfo = await google
-      .oauth2({ version: "v2", auth: oauth2Client })
-      .userinfo.get();
-
-    // Simpan informasi pengguna ke dalam database
-    User.findOneAndUpdate(
-      { email: userInfo.data.email, fullName: userInfo.data.name, role: 2 },
-      userInfo.data,
-      { upsert: true, new: true } // Untuk membuat entri baru jika tidak ditemukan
-    )
-      .then((user) => {
-        console.log("User Info:", user);
-        res.send("Authentication successful!");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        res.status(500).send("Failed to save user data!");
-      });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Authentication failed!");
-  }
-};
-
 // Register account
 exports.register = (data) =>
   new Promise((resolve, reject) => {
@@ -105,12 +56,14 @@ exports.login = async (data) => {
   }
 };
 
+// Show data
 exports.findAll = (req, res) => {
   User.find()
     .then((data) => res.send(data))
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
+// Update data
 exports.update = (req, res) => {
   const id = req.params.id;
 
@@ -124,6 +77,7 @@ exports.update = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
+// Delete data
 exports.delete = (req, res) => {
   const id = req.params.id;
 
@@ -135,4 +89,53 @@ exports.delete = (req, res) => {
       res.send({ message: "Data deleted successfully!" });
     })
     .catch((err) => res.status(500).send({ message: err.message }));
+};
+
+// Login Google
+const OAuth2 = google.auth.OAuth2;
+const oauth2Client = new OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  "http://localhost:8000/user/auth/google/callback"
+);
+
+exports.googleAuthRedirect = (req, res) => {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+    ],
+    include_granted_scopes: true,
+  });
+  res.redirect(authUrl);
+};
+
+exports.googleAuthCallback = async (req, res) => {
+  const { code } = req.query;
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+    const userInfo = await google
+      .oauth2({ version: "v2", auth: oauth2Client })
+      .userinfo.get();
+
+    // Simpan informasi pengguna ke dalam database
+    User.findOneAndUpdate(
+      { email: userInfo.data.email, fullName: userInfo.data.name, role: 2 },
+      userInfo.data,
+      { upsert: true, new: true } // Untuk membuat entri baru jika tidak ditemukan
+    )
+      .then((user) => {
+        console.log("User Info:", user);
+        res.send("Authentication successful!");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        res.status(500).send("Failed to save user data!");
+      });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Authentication failed!");
+  }
 };

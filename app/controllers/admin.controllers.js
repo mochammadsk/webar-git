@@ -2,6 +2,7 @@ const Admin = require("../models/user.models");
 const response = require("../config/response");
 const argon2 = require("argon2");
 
+// Register account
 exports.create = (data) =>
   new Promise((resolve, reject) => {
     Admin.findOne({ userName: data.userName })
@@ -35,6 +36,7 @@ exports.create = (data) =>
       .catch(() => reject(response.commonErrorMsg("Failed to find user!")));
   });
 
+// Show data
 exports.findAll = (req, res) => {
   Admin.find()
     .then((data) => res.send(data))
@@ -49,6 +51,7 @@ exports.show = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
+// Update data
 exports.update = (req, res) => {
   const id = req.params.id;
 
@@ -62,6 +65,7 @@ exports.update = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
+// Delete data
 exports.delete = (req, res) => {
   const id = req.params.id;
 

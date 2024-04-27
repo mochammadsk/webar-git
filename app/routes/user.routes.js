@@ -4,7 +4,7 @@ module.exports = (app) => {
   const verification = require("../middelware/verifytoken");
   const r = require("express").Router();
 
-  // Register Account
+  // Register account
   r.post("/register", (req, res) => {
     user
       .register(req.body)
@@ -12,7 +12,7 @@ module.exports = (app) => {
       .catch((err) => res.json(err));
   });
 
-  // Login Account
+  // Login account
   r.post("/login", auth.handleLogin);
 
   // Show data
