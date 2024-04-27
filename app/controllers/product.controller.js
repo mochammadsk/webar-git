@@ -1,5 +1,6 @@
 const Product = require("../models/product.models");
 
+// Create data
 exports.createProduct = async (req, res) => {
   try {
     const { name, price, stock } = req.body;
@@ -14,6 +15,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
+// Update data
 exports.updateProduct = (req, res) => {
   const id = req.params.id;
 
@@ -29,6 +31,7 @@ exports.updateProduct = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
+// Show data
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find();

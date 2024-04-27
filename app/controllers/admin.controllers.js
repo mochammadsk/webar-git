@@ -2,6 +2,7 @@ const Admin = require("../models/user.models");
 const response = require("../config/response");
 const argon2 = require("argon2");
 
+// Register account
 exports.create = (data) =>
   new Promise((resolve, reject) => {
     Admin.findOne({ userName: data.userName })
@@ -35,6 +36,26 @@ exports.create = (data) =>
       .catch(() => reject(response.commonErrorMsg("Failed to find user!")));
   });
 
+exports.login = async (data) => {
+  try {
+    const user = await User.findOne({ userName: data.userName });
+    if (!user) {
+      throw new Error("Username not found!");
+    }
+
+    const match = await argon2.verify(user.password, data.password);
+    if (!match) {
+      throw new Error("Wrong password!");
+    }
+
+    const token = jwt.sign({ userName: user.userName }, process.env.JWT_SECRET);
+    return { message: "Login Successful", token };
+  } catch (error) {
+    throw new Error("Login Failed!");
+  }
+};
+
+// Show data
 exports.findAll = (req, res) => {
   Admin.find()
     .then((data) => res.send(data))
@@ -49,6 +70,7 @@ exports.show = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
+// Update data
 exports.update = (req, res) => {
   const id = req.params.id;
 
@@ -62,6 +84,7 @@ exports.update = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
+// Delete data
 exports.delete = (req, res) => {
   const id = req.params.id;
 
