@@ -1,5 +1,7 @@
 module.exports = (app) => {
   const admin = require("../controllers/admin.controllers");
+  const auth = require("../controllers/auth.controller");
+  const verification = require("../middelware/verifytoken");
   const r = require("express").Router();
 
   // Register account
@@ -10,8 +12,11 @@ module.exports = (app) => {
       .catch((err) => res.json(err));
   });
 
+  // Login account
+  r.post("/login", auth.handleLogin);
+
   // Show data
-  r.get("/", admin.findAll);
+  r.get("/", verification, admin.findAll);
   r.get("/:id", admin.show);
 
   // Update data

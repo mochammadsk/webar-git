@@ -36,6 +36,25 @@ exports.create = (data) =>
       .catch(() => reject(response.commonErrorMsg("Failed to find user!")));
   });
 
+exports.login = async (data) => {
+  try {
+    const user = await User.findOne({ userName: data.userName });
+    if (!user) {
+      throw new Error("Username not found!");
+    }
+
+    const match = await argon2.verify(user.password, data.password);
+    if (!match) {
+      throw new Error("Wrong password!");
+    }
+
+    const token = jwt.sign({ userName: user.userName }, process.env.JWT_SECRET);
+    return { message: "Login Successful", token };
+  } catch (error) {
+    throw new Error("Login Failed!");
+  }
+};
+
 // Show data
 exports.findAll = (req, res) => {
   Admin.find()
