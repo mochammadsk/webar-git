@@ -1,9 +1,11 @@
 const User = require("../models/user.models");
 const response = require("../config/response");
 const { google } = require("googleapis");
+const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
+const dotenv = require("dotenv");
 
-require("dotenv").config();
+dotenv.config();
 
 // Login Google
 const OAuth2 = google.auth.OAuth2;
@@ -54,6 +56,7 @@ exports.googleAuthCallback = async (req, res) => {
   }
 };
 
+// Register account
 exports.register = (data) =>
   new Promise((resolve, reject) => {
     User.findOne({ userName: data.userName })
@@ -82,31 +85,25 @@ exports.register = (data) =>
       .catch(() => reject(response.commonErrorMsg("Failed to find user!")));
   });
 
-// Login Account
-exports.login = (data) =>
-  new Promise((resolve, reject) => {
-    User.findOne({
-      userName: data.userName,
-    }).then((user) => {
-      if (user) {
-        // Verifikasi password
-        argon2
-          .verify(user.password, data.password)
-          .then((match) => {
-            if (match) {
-              resolve(response.commonResult(user));
-            } else {
-              reject(response.commonErrorMsg("Wrong password!"));
-            }
-          })
-          .catch(() => {
-            reject(response.commonErrorMsg("Failed to verify password!"));
-          });
-      } else {
-        reject(response.commonErrorMsg("Username not found!"));
-      }
-    });
-  });
+// Login account
+exports.login = async (data) => {
+  try {
+    const user = await User.findOne({ userName: data.userName });
+    if (!user) {
+      throw new Error("Username not found!");
+    }
+
+    const match = await argon2.verify(user.password, data.password);
+    if (!match) {
+      throw new Error("Wrong password!");
+    }
+
+    const token = jwt.sign({ userName: user.userName }, process.env.JWT_SECRET);
+    return { message: "Login Successful", token };
+  } catch (error) {
+    throw new Error("Login Failed!");
+  }
+};
 
 exports.findAll = (req, res) => {
   User.find()
