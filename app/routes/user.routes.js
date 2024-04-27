@@ -4,6 +4,7 @@ module.exports = (app) => {
   const verification = require("../middelware/verifytoken");
   const r = require("express").Router();
 
+  // Register Account
   r.post("/register", (req, res) => {
     user
       .register(req.body)
@@ -11,11 +12,19 @@ module.exports = (app) => {
       .catch((err) => res.json(err));
   });
 
+  // Login Account
   r.post("/login", auth.handleLogin);
+
+  // Show data
   r.get("/", verification, user.findAll);
+
+  // Update data
   r.put("/:id", user.update);
+
+  // Delete data
   r.delete("/:id", user.delete);
 
+  // Google Auth
   r.get("/auth/google", user.googleAuthRedirect);
   r.get("/auth/google/callback", user.googleAuthCallback);
 

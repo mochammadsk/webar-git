@@ -2,6 +2,7 @@ module.exports = (app) => {
   const admin = require("../controllers/admin.controllers");
   const r = require("express").Router();
 
+  // Register Account
   r.post("/register", (req, res) => {
     admin
       .create(req.body)
@@ -9,9 +10,14 @@ module.exports = (app) => {
       .catch((err) => res.json(err));
   });
 
+  // Show data
   r.get("/", admin.findAll);
   r.get("/:id", admin.show);
+
+  // Update data
   r.put("/:id", admin.update);
+
+  // Delete data
   r.delete("/:id", admin.delete);
 
   app.use("/admin", r);
