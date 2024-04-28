@@ -6,11 +6,11 @@ module.exports = (app) => {
   r.post("/create", product.createProduct);
 
   // Update data
-  r.put("/:id", product.updateProduct);
+  r.put("/update/:id", product.updateProduct);
 
   // Show data
-  r.get("/", product.getAllProducts);
-  r.get("/:id", product.getProductById);
+  r.get("/list", product.getAllProducts);
+  r.get("/list/:id", product.getProductById);
 
   app.use("/products", r);
 };

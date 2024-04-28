@@ -15,14 +15,11 @@ module.exports = (app) => {
   // Login account
   r.post("/login", auth.handleLogin);
 
-  // Show data
-  r.get("/", verification, user.findAll);
-
   // Update data
-  r.put("/:id", user.update);
+  r.put("/update/:id", user.update);
 
   // Delete data
-  r.delete("/:id", user.delete);
+  r.delete("/delete/:id", user.delete);
 
   // Google Auth
   r.get("/auth/google", user.googleAuthRedirect);
