@@ -3,10 +3,11 @@ const UserVerification = require("../models/userVerification");
 const sendVerificationEmail = require("../services/email.services");
 const response = require("../config/response");
 const { google } = require("googleapis");
+const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
+const bcrypt = require("bcrypt");
 const dotenv = require("dotenv");
-const { v4: uuidv4 } = require("uuid");
 
 dotenv.config();
 
@@ -20,30 +21,81 @@ exports.register = (data) =>
           reject(response.commonErrorMsg("Username already exists!"));
         } else {
           console.log("User not found. Proceeding with registration...");
+
           // Hash password
           argon2
             .hash(data.password)
             .then((hash) => {
               console.log("Password hashed successfully.");
               data.password = hash;
+              data.role = data.role || 2;
+              data.verified = false;
               User.create(data)
                 .then((createdUser) => {
                   console.log("User created successfully:", createdUser);
-                  // Send verification email
-                  sendVerificationEmail(createdUser.email)
-                    .then(() => {
-                      console.log("Verification email sent successfully.");
-                      resolve(
-                        response.commonSuccessMsg(
-                          "Successful registration! Please verify your email."
-                        )
-                      );
+
+                  // Create verification token
+                  const uniqueString = uuidv4() + createdUser._id;
+                  bcrypt
+                    .hash(uniqueString, 10)
+                    .then((hashedUniqueString) => {
+                      const newVerification = new UserVerification({
+                        userId: createdUser._id,
+                        uniqueString: hashedUniqueString,
+                        expiresAt: Date.now() + 3600000, // 1 hour
+                      });
+
+                      newVerification
+                        .save()
+                        .then(() => {
+                          // Send verification email
+                          sendVerificationEmail(
+                            createdUser.email,
+                            createdUser.userName,
+                            uniqueString
+                          )
+                            .then(() => {
+                              console.log(
+                                "Verification email sent successfully."
+                              );
+                              resolve(
+                                response.commonSuccessMsg(
+                                  "Successful registration! Please verify your email."
+                                )
+                              );
+                            })
+                            .catch((error) => {
+                              console.error(
+                                "Error sending verification email:",
+                                error
+                              );
+                              resolve(
+                                response.commonSuccessMsg(
+                                  "Successful registration! Verification email could not be sent."
+                                )
+                              );
+                            });
+                        })
+                        .catch((error) => {
+                          console.error(
+                            "Error saving user verification:",
+                            error
+                          );
+                          reject(
+                            response.commonErrorMsg(
+                              "Failed to save verification data!"
+                            )
+                          );
+                        });
                     })
                     .catch((error) => {
-                      console.error("Error sending verification email:", error);
-                      resolve(
-                        response.commonSuccessMsg(
-                          "Successful registration! Verification email could not be sent."
+                      console.error(
+                        "Error hashing verification string:",
+                        error
+                      );
+                      reject(
+                        response.commonErrorMsg(
+                          "Failed to hash verification string!"
                         )
                       );
                     });
@@ -64,6 +116,80 @@ exports.register = (data) =>
         reject(response.commonErrorMsg("Failed to find user!"));
       });
   });
+
+// Verification email
+exports.verifyEmail = (req, res) => {
+  const { uniqueString } = req.params;
+
+  UserVerification.findOne({})
+    .then((record) => {
+      if (record) {
+        bcrypt.compare(uniqueString, record.uniqueString, (err, isMatch) => {
+          if (err) {
+            console.error("Error comparing unique strings:", err);
+            return res
+              .status(500)
+              .json(response.commonErrorMsg("Error verifying email"));
+          }
+          if (isMatch) {
+            const { userId } = record;
+            User.updateOne({ _id: userId }, { verified: true })
+              .then(() => {
+                UserVerification.deleteOne({ _id: record._id })
+                  .then(() => {
+                    res
+                      .status(200)
+                      .json(
+                        response.commonSuccessMsg(
+                          "Email verified successfully!"
+                        )
+                      );
+                  })
+                  .catch((error) => {
+                    console.error("Error deleting verification record:", error);
+                    res
+                      .status(500)
+                      .json(
+                        response.commonErrorMsg(
+                          "Error deleting verification record"
+                        )
+                      );
+                  });
+              })
+              .catch((error) => {
+                console.error(
+                  "Error updating user verification status:",
+                  error
+                );
+                res
+                  .status(500)
+                  .json(
+                    response.commonErrorMsg(
+                      "Error updating user verification status"
+                    )
+                  );
+              });
+          } else {
+            res
+              .status(400)
+              .json(
+                response.commonErrorMsg("Invalid or expired verification link")
+              );
+          }
+        });
+      } else {
+        res
+          .status(400)
+          .json(
+            response.commonErrorMsg("Invalid or expired verification link")
+          );
+      }
+    })
+    .catch((error) => {
+      console.error("Error verifying email:", error);
+      res.status(500).json(response.commonErrorMsg("Error verifying email"));
+    });
+};
 
 // Login account
 exports.login = async (data) => {

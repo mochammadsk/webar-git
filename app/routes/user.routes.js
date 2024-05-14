@@ -12,6 +12,9 @@ module.exports = (app) => {
       .catch((err) => res.json(err));
   });
 
+  // Verification email
+  r.get("/verify/:uniqueString", user.verifyEmail);
+
   // Login account
   r.post("/signin", auth.handleLogin);
 
