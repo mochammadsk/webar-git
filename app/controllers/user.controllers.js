@@ -1,39 +1,68 @@
 const User = require("../models/user.models");
+const UserVerification = require("../models/userVerification");
+const sendVerificationEmail = require("../services/email.services");
 const response = require("../config/response");
 const { google } = require("googleapis");
 const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
 const dotenv = require("dotenv");
+const { v4: uuidv4 } = require("uuid");
 
 dotenv.config();
 
 // Register account
 exports.register = (data) =>
   new Promise((resolve, reject) => {
+    console.log("Starting registration process...");
     User.findOne({ userName: data.userName })
       .then((user) => {
         if (user) {
           reject(response.commonErrorMsg("Username already exists!"));
         } else {
+          console.log("User not found. Proceeding with registration...");
           // Hash password
           argon2
             .hash(data.password)
             .then((hash) => {
+              console.log("Password hashed successfully.");
               data.password = hash;
               User.create(data)
-                .then(() =>
-                  resolve(response.commonSuccessMsg("Successful registration!"))
-                )
-                .catch(() =>
-                  reject(response.commonErrorMsg("Registration failed!"))
-                );
+                .then((createdUser) => {
+                  console.log("User created successfully:", createdUser);
+                  // Send verification email
+                  sendVerificationEmail(createdUser.email)
+                    .then(() => {
+                      console.log("Verification email sent successfully.");
+                      resolve(
+                        response.commonSuccessMsg(
+                          "Successful registration! Please verify your email."
+                        )
+                      );
+                    })
+                    .catch((error) => {
+                      console.error("Error sending verification email:", error);
+                      resolve(
+                        response.commonSuccessMsg(
+                          "Successful registration! Verification email could not be sent."
+                        )
+                      );
+                    });
+                })
+                .catch((error) => {
+                  console.error("Error creating user:", error);
+                  reject(response.commonErrorMsg("Registration failed!"));
+                });
             })
-            .catch(() =>
-              reject(response.commonErrorMsg("Password hashing failed!"))
-            );
+            .catch((error) => {
+              console.error("Error hashing password:", error);
+              reject(response.commonErrorMsg("Password hashing failed!"));
+            });
         }
       })
-      .catch(() => reject(response.commonErrorMsg("Failed to find user!")));
+      .catch((error) => {
+        console.error("Error finding user:", error);
+        reject(response.commonErrorMsg("Failed to find user!"));
+      });
   });
 
 // Login account
