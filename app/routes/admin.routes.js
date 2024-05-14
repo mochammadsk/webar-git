@@ -16,14 +16,14 @@ module.exports = (app) => {
   r.post("/signin", auth.handleLogin);
 
   // Show data
-  r.get("/", verification, admin.findAll);
-  r.get("/:id", admin.show);
+  r.get("/list", verification, admin.findAll);
+  r.get("/list/:id", admin.show);
 
   // Update data
-  r.put("/:id", admin.update);
+  r.put("/update/:id", admin.update);
 
   // Delete data
-  r.delete("/:id", admin.delete);
+  r.delete("/delete/:id", admin.delete);
 
   app.use("/admin", r);
 };
