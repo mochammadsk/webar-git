@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "argon2": "^0.40.1",
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "connect-flash": "^0.1.1",
     "cors": "^2.8.5",
@@ -22,7 +23,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.5.0",
     "mongoose": "^8.2.4",
-    "path": "^0.12.7"
+    "nodemailer": "^6.9.13",
+    "path": "^0.12.7",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

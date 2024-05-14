@@ -5,7 +5,7 @@ module.exports = (app) => {
   const r = require("express").Router();
 
   // Register account
-  r.post("/register", (req, res) => {
+  r.post("/signup", (req, res) => {
     admin
       .create(req.body)
       .then((result) => res.json(result))
@@ -13,7 +13,7 @@ module.exports = (app) => {
   });
 
   // Login account
-  r.post("/login", auth.handleLogin);
+  r.post("/signin", auth.handleLogin);
 
   // Show data
   r.get("/list", verification, admin.findAll);

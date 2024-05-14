@@ -5,15 +5,18 @@ module.exports = (app) => {
   const r = require("express").Router();
 
   // Register account
-  r.post("/register", (req, res) => {
+  r.post("/signup", (req, res) => {
     user
       .register(req.body)
       .then((result) => res.json(result))
       .catch((err) => res.json(err));
   });
 
+  // Verification email
+  r.get("/verify/:uniqueString", user.verifyEmail);
+
   // Login account
-  r.post("/login", auth.handleLogin);
+  r.post("/signin", auth.handleLogin);
 
   // Update data
   r.put("/update/:id", user.update);

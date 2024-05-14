@@ -1,5 +1,6 @@
 const app = require("./app");
 const db = require("./app/config/database");
+const sendVerificationEmail = require("./app/services/email.services");
 const mongoose = require("mongoose");
 const http = require("http");
 
@@ -16,3 +17,6 @@ mongoose
 const PORT = 8000;
 const server = http.createServer(app);
 server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+// Connection transporter email
+sendVerificationEmail("mochammadsk@zohomail.com");
