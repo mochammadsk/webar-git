@@ -1,4 +1,3 @@
-// const uniqueString = require("../controllers/user.controllers");
 const nodemailer = require("nodemailer");
 const dotenv = require("dotenv");
 
@@ -22,14 +21,14 @@ function sendVerificationEmail(email, userName, uniqueString) {
       if (error) {
         console.log(error);
       } else {
-        console.log("Email connected:", success);
+        console.log("User email register service:", success);
       }
     });
 
     // Send mail with defined transport object
     transporter.sendMail(
       {
-        from: "mochammadsk@zohomail.com",
+        from: `"noreply" <${process.env.AUTH_EMAIL}>`,
         to: email,
         subject: "Account Verification",
         html: `
