@@ -1,14 +1,16 @@
 module.exports = (app) => {
   const user = require("../controllers/user.controllers");
+  const { register } = require("../controllers/user.controllers");
   const auth = require("../controllers/auth.controller");
+  const validateRegistration = require("../middelware/validateRegristation");
   const r = require("express").Router();
 
   // Register account
-  r.post("/signup", (req, res) => {
-    user
-      .register(req.body)
-      .then((result) => res.json(result))
-      .catch((err) => res.json(err));
+  r.post("/signup", validateRegistration, (req, res) => {
+    const data = req.body;
+    register(data)
+      .then((result) => res.status(200).json(result))
+      .catch((error) => res.status(400).json(error));
   });
 
   // Verification email for register account

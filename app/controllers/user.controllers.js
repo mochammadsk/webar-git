@@ -206,6 +206,16 @@ exports.login = async (data) => {
       throw new Error("Wrong password!");
     }
 
+    // Check status account
+    if (!user.verified) {
+      throw new Error("Email not verified!");
+    }
+
+    // Check status role
+    if (user.role !== 2) {
+      throw new Error("Unauthorized role!");
+    }
+
     const token = jwt.sign({ userName: user.userName }, process.env.JWT_SECRET);
     return { message: "Login Successful", token };
   } catch (error) {
