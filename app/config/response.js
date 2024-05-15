@@ -1,32 +1,32 @@
 module.exports = {
   commonError: {
     error: true,
-    msg: "An error occurred on the server",
+    messages: "An error occurred on the server",
   },
 
-  commonErrorMsg: (msg) => {
+  commonErrorMsg: (messages) => {
     return {
       error: true,
-      msg: msg,
+      messages: messages,
     };
   },
 
   commonSuccess: {
     error: false,
-    msg: "Successfully loaded request",
+    messages: "Successfully loaded request",
   },
 
-  commonSuccessMsg: (msg) => {
+  commonSuccessMsg: (messages) => {
     return {
       error: false,
-      msg: msg,
+      messages: messages,
     };
   },
 
   commonResult: (data) => {
     return {
       error: false,
-      msg: "Successfully loaded data",
+      messages: "Successfully loaded data",
       data: data,
     };
   },
