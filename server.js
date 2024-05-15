@@ -1,6 +1,6 @@
 const app = require("./app");
 const db = require("./app/config/database");
-const sendVerificationEmail = require("./app/services/email.services");
+const sendVerificationEmail = require("./app/services/userVerification.services");
 const mongoose = require("mongoose");
 const http = require("http");
 
