@@ -1,7 +1,6 @@
 module.exports = (app) => {
   const user = require("../controllers/user.controllers");
   const auth = require("../controllers/auth.controller");
-  const verification = require("../middelware/verifytoken");
   const r = require("express").Router();
 
   // Register account
@@ -12,11 +11,21 @@ module.exports = (app) => {
       .catch((err) => res.json(err));
   });
 
-  // Verification email
+  // Verification email for register account
   r.get("/verify/:uniqueString", user.verifyEmail);
 
   // Login account
   r.post("/signin", auth.handleLogin);
+
+  // Password reset
+  r.post("/forgot-password", (req, res) => {
+    user.resetPassword(req, res);
+  });
+
+  // Verification email for password rest
+  r.post("/verify", (req, res) => {
+    user.verifyResetPassword(req, res);
+  });
 
   // Update data
   r.put("/update/:id", user.update);
