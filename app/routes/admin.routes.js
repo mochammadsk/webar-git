@@ -1,7 +1,7 @@
 module.exports = (app) => {
   const admin = require("../controllers/admin.controllers");
   const auth = require("../controllers/auth.controller");
-  const verification = require("../middelware/verifytoken");
+  const verification = require("../middelware/jwtVerify");
   const r = require("express").Router();
 
   // Register account
