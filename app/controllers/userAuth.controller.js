@@ -1,4 +1,4 @@
-const authService = require("../controllers/user.controllers");
+const authService = require("./user.controllers");
 
 // Handler login routes
 exports.handleLogin = async (req, res) => {
