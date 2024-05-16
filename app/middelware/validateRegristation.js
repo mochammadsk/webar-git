@@ -26,7 +26,7 @@ const validateRegistration = (req, res, next) => {
       .status(400)
       .json(
         response.commonErrorMsg(
-          "Invalid password! Password must be at least 6 characters long."
+          "Invalid password! Password must be at least 8 characters long."
         )
       );
   }
