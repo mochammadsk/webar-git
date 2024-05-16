@@ -1,7 +1,7 @@
 module.exports = (app) => {
   const user = require("../controllers/user.controllers");
   const { register } = require("../controllers/user.controllers");
-  const auth = require("../controllers/auth.controller");
+  const auth = require("../controllers/userAuth.controller");
   const validateRegistration = require("../middelware/validateRegristation");
   const r = require("express").Router();
 
