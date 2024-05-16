@@ -20,6 +20,16 @@ module.exports = (app) => {
   // Login account
   r.post("/signin", auth.handleLogin);
 
+  // Password reset
+  r.post("/forgot-password", (req, res) => {
+    admin.resetPassword(req, res);
+  });
+
+  // Verification email for password rest
+  r.post("/verify", (req, res) => {
+    admin.verifyResetPassword(req, res);
+  });
+
   // Show data
   r.get("/list", verification, admin.findAll);
   r.get("/list/:id", admin.show);

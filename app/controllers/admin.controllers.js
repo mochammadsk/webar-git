@@ -1,8 +1,8 @@
 const Admin = require("../models/admin.models");
 const AdminVerification = require("../models/adminVerification");
-const PasswordReset = require("../models/userPassReset.models");
+const AdminPasswordReset = require("../models/adminPassReset.models");
 const sendVerificationEmail = require("../services/adminVerification.services");
-const sendResetPasswordEmail = require("../services/userPassReset.services");
+const sendResetPasswordEmail = require("../services/adminPassReset.services");
 const response = require("../config/response");
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
@@ -39,7 +39,7 @@ exports.register = (data) =>
                     .hash(uniqueString, 10)
                     .then((hashedUniqueString) => {
                       const newVerification = new AdminVerification({
-                        userId: createdAdmin._id,
+                        adminId: createdAdmin._id,
                         uniqueString: hashedUniqueString,
                         expiresAt: Date.now() + 3600000, // 1 hour
                       });
@@ -131,8 +131,8 @@ exports.verifyEmail = (req, res) => {
               .json(response.commonErrorMsg("Error verifying email"));
           }
           if (isMatch) {
-            const { userId } = record;
-            Admin.updateOne({ _id: userId }, { verified: true })
+            const { adminId } = record;
+            Admin.updateOne({ _id: adminId }, { verified: true })
               .then(() => {
                 AdminVerification.deleteOne({ _id: record._id })
                   .then(() => {
@@ -221,6 +221,144 @@ exports.login = async (data) => {
   } catch (error) {
     throw new Error("Login Failed!");
   }
+};
+
+// Password reset
+exports.resetPassword = (req, res) => {
+  const { email } = req.body;
+
+  Admin.findOne({ email })
+    .then((admin) => {
+      if (!admin) {
+        return res.status(404).json({ error: true, msg: "Admin not found" });
+      }
+
+      const resetToken = uuidv4();
+      const hashedToken = bcrypt.hashSync(resetToken, 10);
+      const expiresAt = Date.now() + 3600000; // 1 hour
+
+      const newPasswordReset = new AdminPasswordReset({
+        adminId: admin._id,
+        resetToken: hashedToken,
+        createdAt: Date.now(),
+        expiresAt,
+      });
+
+      newPasswordReset
+        .save()
+        .then(() => {
+          sendResetPasswordEmail(admin.email, admin.userName, resetToken)
+            .then(() => {
+              res
+                .status(200)
+                .json({ error: false, msg: "Password reset email sent" });
+            })
+            .catch((error) => {
+              console.error("Error sending reset email:", error);
+              res
+                .status(500)
+                .json({ error: true, msg: "Error sending reset email" });
+            });
+        })
+        .catch((error) => {
+          console.error("Error saving password reset record:", error);
+          res
+            .status(500)
+            .json({ error: true, msg: "Error processing reset request" });
+        });
+    })
+    .catch((error) => {
+      console.error("Error finding user:", error);
+      res
+        .status(500)
+        .json({ error: true, msg: "Error processing reset request" });
+    });
+};
+
+// Verification email password reset
+exports.verifyResetPassword = (req, res) => {
+  const { resetToken, newPassword } = req.body;
+
+  AdminPasswordReset.find()
+    .then((passwordResets) => {
+      const passwordReset = passwordResets.find((pr) =>
+        bcrypt.compareSync(resetToken, pr.resetToken)
+      );
+
+      if (!passwordReset) {
+        return res
+          .status(400)
+          .json({ error: true, msg: "Invalid reset token" });
+      }
+
+      const { adminId, expiresAt } = passwordReset;
+
+      if (expiresAt < Date.now()) {
+        return res
+          .status(400)
+          .json({ error: true, msg: "Reset token has expired" });
+      }
+
+      // Update user password
+      Admin.findById(adminId)
+        .then((admin) => {
+          if (!admin) {
+            return res
+              .status(400)
+              .json({ error: true, msg: "Admin not found" });
+          }
+
+          // Hash new password
+          argon2
+            .hash(newPassword)
+            .then((hashedPassword) => {
+              admin.password = hashedPassword;
+              admin
+                .save()
+                .then(() => {
+                  // Delete the password reset token from the database
+                  AdminPasswordReset.deleteOne({ _id: passwordReset._id })
+                    .then(() => {
+                      res.status(200).json({
+                        success: true,
+                        msg: "Password reset successfully",
+                      });
+                    })
+                    .catch((error) => {
+                      console.error(
+                        "Error deleting password reset token:",
+                        error
+                      );
+                      res
+                        .status(500)
+                        .json({ error: true, msg: "Failed to reset password" });
+                    });
+                })
+                .catch((error) => {
+                  console.error("Error saving new password:", error);
+                  res
+                    .status(500)
+                    .json({ error: true, msg: "Failed to reset password" });
+                });
+            })
+            .catch((error) => {
+              console.error("Error hashing new password:", error);
+              res
+                .status(500)
+                .json({ error: true, msg: "Failed to reset password" });
+            });
+        })
+        .catch((error) => {
+          console.error("Error finding user:", error);
+          res
+            .status(500)
+            .json({ error: true, msg: "Failed to reset password" });
+        });
+    })
+    .catch((error) => {
+      console.error("Error finding password reset token:", error);
+      res.status(500).json({ error: true, msg: "Failed to reset password" });
+    });
 };
 
 // Show data
