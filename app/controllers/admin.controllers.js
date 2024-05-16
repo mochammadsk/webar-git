@@ -190,6 +190,7 @@ exports.verifyEmail = (req, res) => {
     });
 };
 
+// Login account
 exports.login = async (data) => {
   try {
     const admin = await Admin.findOne({ userName: data.userName });
@@ -218,7 +219,7 @@ exports.login = async (data) => {
     );
     return { message: "Login Successful", token };
   } catch (error) {
-    throw new Error("Login Failed!:");
+    throw new Error("Login Failed!");
   }
 };
 

@@ -1,7 +1,7 @@
 module.exports = (app) => {
   const admin = require("../controllers/admin.controllers");
   const { register } = require("../controllers/admin.controllers");
-  const auth = require("../controllers/auth.controller");
+  const auth = require("../controllers/adminAuth.controller");
   const verification = require("../middelware/jwtVerify");
   const validateRegistration = require("../middelware/validateRegristation");
   const r = require("express").Router();
