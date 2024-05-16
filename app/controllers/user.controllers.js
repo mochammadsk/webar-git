@@ -30,8 +30,6 @@ exports.register = (data) =>
             .then((hash) => {
               console.log("Password hashed successfully.");
               data.password = hash;
-              data.role = data.role || 2;
-              data.verified = false;
               User.create(data)
                 .then((createdUser) => {
                   console.log("User created successfully:", createdUser);
