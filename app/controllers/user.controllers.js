@@ -1,6 +1,8 @@
 const User = require("../models/user.models");
 const UserVerification = require("../models/userVerification");
-const sendVerificationEmail = require("../services/email.services");
+const PasswordReset = require("../models/userPassReset.models");
+const sendVerificationEmail = require("../services/userVerification.services");
+const sendResetPasswordEmail = require("../services/userPassReset.services");
 const response = require("../config/response");
 const { google } = require("googleapis");
 const { v4: uuidv4 } = require("uuid");
@@ -15,10 +17,18 @@ dotenv.config();
 exports.register = (data) =>
   new Promise((resolve, reject) => {
     console.log("Starting registration process...");
-    User.findOne({ userName: data.userName })
+
+    // Check if userName or email already exists
+    User.findOne({
+      $or: [{ userName: data.userName }, { email: data.email }],
+    })
       .then((user) => {
         if (user) {
-          reject(response.commonErrorMsg("Username already exists!"));
+          if (user.userName === data.userName) {
+            reject(response.commonErrorMsg("Username already exists!"));
+          } else {
+            reject(response.commonErrorMsg("Email already exists!"));
+          }
         } else {
           console.log("User not found. Proceeding with registration...");
 
@@ -28,8 +38,6 @@ exports.register = (data) =>
             .then((hash) => {
               console.log("Password hashed successfully.");
               data.password = hash;
-              data.role = data.role || 2;
-              data.verified = false;
               User.create(data)
                 .then((createdUser) => {
                   console.log("User created successfully:", createdUser);
@@ -117,7 +125,7 @@ exports.register = (data) =>
       });
   });
 
-// Verification email
+// Verification email for register account
 exports.verifyEmail = (req, res) => {
   const { uniqueString } = req.params;
 
@@ -204,11 +212,157 @@ exports.login = async (data) => {
       throw new Error("Wrong password!");
     }
 
+    // Check status account
+    if (!user.verified) {
+      throw new Error("Email not verified!");
+    }
+
+    // Check status role
+    if (user.role !== 2) {
+      throw new Error("Unauthorized role!");
+    }
+
     const token = jwt.sign({ userName: user.userName }, process.env.JWT_SECRET);
     return { message: "Login Successful", token };
   } catch (error) {
     throw new Error("Login Failed!");
   }
+};
+
+// Password reset
+exports.resetPassword = (req, res) => {
+  const { email } = req.body;
+
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ error: true, msg: "User not found" });
+      }
+
+      const resetToken = uuidv4();
+      const hashedToken = bcrypt.hashSync(resetToken, 10);
+      const expiresAt = Date.now() + 3600000; // 1 hour
+
+      const newPasswordReset = new PasswordReset({
+        userId: user._id,
+        resetToken: hashedToken,
+        createdAt: Date.now(),
+        expiresAt,
+      });
+
+      newPasswordReset
+        .save()
+        .then(() => {
+          sendResetPasswordEmail(user.email, user.userName, resetToken)
+            .then(() => {
+              res
+                .status(200)
+                .json({ error: false, msg: "Password reset email sent" });
+            })
+            .catch((error) => {
+              console.error("Error sending reset email:", error);
+              res
+                .status(500)
+                .json({ error: true, msg: "Error sending reset email" });
+            });
+        })
+        .catch((error) => {
+          console.error("Error saving password reset record:", error);
+          res
+            .status(500)
+            .json({ error: true, msg: "Error processing reset request" });
+        });
+    })
+    .catch((error) => {
+      console.error("Error finding user:", error);
+      res
+        .status(500)
+        .json({ error: true, msg: "Error processing reset request" });
+    });
+};
+
+// Verification email password reset
+exports.verifyResetPassword = (req, res) => {
+  const { resetToken, newPassword } = req.body;
+
+  PasswordReset.find()
+    .then((passwordResets) => {
+      const passwordReset = passwordResets.find((pr) =>
+        bcrypt.compareSync(resetToken, pr.resetToken)
+      );
+
+      if (!passwordReset) {
+        return res
+          .status(400)
+          .json({ error: true, msg: "Invalid reset token" });
+      }
+
+      const { userId, expiresAt } = passwordReset;
+
+      if (expiresAt < Date.now()) {
+        return res
+          .status(400)
+          .json({ error: true, msg: "Reset token has expired" });
+      }
+
+      // Update user password
+      User.findById(userId)
+        .then((user) => {
+          if (!user) {
+            return res.status(400).json({ error: true, msg: "User not found" });
+          }
+
+          // Hash new password
+          argon2
+            .hash(newPassword)
+            .then((hashedPassword) => {
+              user.password = hashedPassword;
+              user
+                .save()
+                .then(() => {
+                  // Delete the password reset token from the database
+                  PasswordReset.deleteOne({ _id: passwordReset._id })
+                    .then(() => {
+                      res.status(200).json({
+                        success: true,
+                        msg: "Password reset successfully",
+                      });
+                    })
+                    .catch((error) => {
+                      console.error(
+                        "Error deleting password reset token:",
+                        error
+                      );
+                      res
+                        .status(500)
+                        .json({ error: true, msg: "Failed to reset password" });
+                    });
+                })
+                .catch((error) => {
+                  console.error("Error saving new password:", error);
+                  res
+                    .status(500)
+                    .json({ error: true, msg: "Failed to reset password" });
+                });
+            })
+            .catch((error) => {
+              console.error("Error hashing new password:", error);
+              res
+                .status(500)
+                .json({ error: true, msg: "Failed to reset password" });
+            });
+        })
+        .catch((error) => {
+          console.error("Error finding user:", error);
+          res
+            .status(500)
+            .json({ error: true, msg: "Failed to reset password" });
+        });
+    })
+    .catch((error) => {
+      console.error("Error finding password reset token:", error);
+      res.status(500).json({ error: true, msg: "Failed to reset password" });
+    });
 };
 
 // Update data
