@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const adminVerificationSchema = new mongoose.Schema({
-  userId: { type: String, required: true, unique: true },
+  adminId: { type: String, required: true, unique: true },
   uniqueString: { type: String, required: true },
   createAt: { type: Date, default: Date.now },
   expiredAt: { type: Date },
