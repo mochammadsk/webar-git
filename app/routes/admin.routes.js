@@ -5,10 +5,22 @@ module.exports = (app) => {
   const verification = require("../middelware/jwtVerify");
   const validateRegistration = require("../middelware/validateRegristation");
   const r = require("express").Router();
+  const dotenv = require("dotenv");
+
+  dotenv.config();
 
   // Register account
+  const SECRET_CODE = process.env.SECRET_CODE;
+
   r.post("/signup", validateRegistration, (req, res) => {
-    const data = req.body;
+    const { secretCode, ...data } = req.body;
+
+    if (secretCode !== SECRET_CODE) {
+      return res
+        .status(403)
+        .json({ message: "Forbidden: Invalid secret code" });
+    }
+
     register(data)
       .then((result) => res.status(200).json(result))
       .catch((error) => res.status(400).json(error));
