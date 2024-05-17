@@ -17,10 +17,18 @@ dotenv.config();
 exports.register = (data) =>
   new Promise((resolve, reject) => {
     console.log("Starting registration process...");
-    User.findOne({ userName: data.userName })
+
+    // Check if userName or email already exists
+    User.findOne({
+      $or: [{ userName: data.userName }, { email: data.email }],
+    })
       .then((user) => {
         if (user) {
-          reject(response.commonErrorMsg("Username already exists!"));
+          if (user.userName === data.userName) {
+            reject(response.commonErrorMsg("Username already exists!"));
+          } else {
+            reject(response.commonErrorMsg("Email already exists!"));
+          }
         } else {
           console.log("User not found. Proceeding with registration...");
 
