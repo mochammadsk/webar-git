@@ -7,8 +7,11 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+# Environment variables
+.env
+
 # Dependency directories
 node_modules/
 
-# Environment Variables
-.env
+# Config
+firebaseConfig.js
