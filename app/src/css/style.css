@@ -1,0 +1,60 @@
+/* src/css/styles.css */
+
+/* Reset dasar */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+/* Gaya untuk elemen input dan tombol */
+input[type="file"],
+input[type="number"],
+button {
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Gaya untuk canvas Three.js */
+canvas {
+  border: 1px solid #ccc;
+  margin-top: 20px;
+}
+
+/* Kontainer untuk kontrol */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.controls input {
+  width: 200px;
+  margin: 5px 0;
+}
