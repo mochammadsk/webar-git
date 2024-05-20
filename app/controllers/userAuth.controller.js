@@ -6,8 +6,8 @@ exports.handleLogin = async (req, res) => {
     const response = await authService.login(req.body);
     res
       .header("auth-token", response.token)
-      .json({ message: response.message });
+      .json({ messages: response.messages });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ messages: error.messages });
   }
 };

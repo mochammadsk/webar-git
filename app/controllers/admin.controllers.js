@@ -238,7 +238,9 @@ exports.resetPassword = (req, res) => {
   Admin.findOne({ email })
     .then((admin) => {
       if (!admin) {
-        return res.status(404).json({ error: true, msg: "Admin not found" });
+        return res
+          .status(404)
+          .json({ error: true, messages: "Admin not found" });
       }
 
       const resetToken = uuidv4();
@@ -259,27 +261,27 @@ exports.resetPassword = (req, res) => {
             .then(() => {
               res
                 .status(200)
-                .json({ error: false, msg: "Password reset email sent" });
+                .json({ error: false, messages: "Password reset email sent" });
             })
             .catch((error) => {
               console.error("Error sending reset email:", error);
               res
                 .status(500)
-                .json({ error: true, msg: "Error sending reset email" });
+                .json({ error: true, messages: "Error sending reset email" });
             });
         })
         .catch((error) => {
           console.error("Error saving password reset record:", error);
           res
             .status(500)
-            .json({ error: true, msg: "Error processing reset request" });
+            .json({ error: true, messages: "Error processing reset request" });
         });
     })
     .catch((error) => {
       console.error("Error finding user:", error);
       res
         .status(500)
-        .json({ error: true, msg: "Error processing reset request" });
+        .json({ error: true, messages: "Error processing reset request" });
     });
 };
 
@@ -296,7 +298,7 @@ exports.verifyResetPassword = (req, res) => {
       if (!passwordReset) {
         return res
           .status(400)
-          .json({ error: true, msg: "Invalid reset token" });
+          .json({ error: true, messages: "Invalid reset token" });
       }
 
       const { adminId, expiresAt } = passwordReset;
@@ -304,7 +306,7 @@ exports.verifyResetPassword = (req, res) => {
       if (expiresAt < Date.now()) {
         return res
           .status(400)
-          .json({ error: true, msg: "Reset token has expired" });
+          .json({ error: true, messages: "Reset token has expired" });
       }
 
       // Update user password
@@ -313,7 +315,7 @@ exports.verifyResetPassword = (req, res) => {
           if (!admin) {
             return res
               .status(400)
-              .json({ error: true, msg: "Admin not found" });
+              .json({ error: true, messages: "Admin not found" });
           }
 
           // Hash new password
@@ -329,7 +331,7 @@ exports.verifyResetPassword = (req, res) => {
                     .then(() => {
                       res.status(200).json({
                         success: true,
-                        msg: "Password reset successfully",
+                        messages: "Password reset successfully",
                       });
                     })
                     .catch((error) => {
@@ -337,35 +339,39 @@ exports.verifyResetPassword = (req, res) => {
                         "Error deleting password reset token:",
                         error
                       );
-                      res
-                        .status(500)
-                        .json({ error: true, msg: "Failed to reset password" });
+                      res.status(500).json({
+                        error: true,
+                        messages: "Failed to reset password",
+                      });
                     });
                 })
                 .catch((error) => {
                   console.error("Error saving new password:", error);
-                  res
-                    .status(500)
-                    .json({ error: true, msg: "Failed to reset password" });
+                  res.status(500).json({
+                    error: true,
+                    messages: "Failed to reset password",
+                  });
                 });
             })
             .catch((error) => {
               console.error("Error hashing new password:", error);
               res
                 .status(500)
-                .json({ error: true, msg: "Failed to reset password" });
+                .json({ error: true, messages: "Failed to reset password" });
             });
         })
         .catch((error) => {
           console.error("Error finding user:", error);
           res
             .status(500)
-            .json({ error: true, msg: "Failed to reset password" });
+            .json({ error: true, messages: "Failed to reset password" });
         });
     })
     .catch((error) => {
       console.error("Error finding password reset token:", error);
-      res.status(500).json({ error: true, msg: "Failed to reset password" });
+      res
+        .status(500)
+        .json({ error: true, messages: "Failed to reset password" });
     });
 };
 

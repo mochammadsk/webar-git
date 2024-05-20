@@ -1,6 +1,6 @@
 const User = require("../models/user.models");
 const UserVerification = require("../models/userVerification");
-const PasswordReset = require("../models/userPassReset.models");
+const UserPasswordReset = require("../models/userPassReset.models");
 const sendVerificationEmail = require("../services/userVerification.services");
 const sendResetPasswordEmail = require("../services/userPassReset.services");
 const response = require("../config/response");
@@ -223,7 +223,7 @@ exports.login = async (data) => {
     }
 
     const token = jwt.sign({ userName: user.userName }, process.env.JWT_SECRET);
-    return { message: "Login Successful", token };
+    return { messages: "Login Successful", token };
   } catch (error) {
     throw new Error("Login Failed!");
   }
@@ -236,14 +236,16 @@ exports.resetPassword = (req, res) => {
   User.findOne({ email })
     .then((user) => {
       if (!user) {
-        return res.status(404).json({ error: true, msg: "User not found" });
+        return res
+          .status(404)
+          .json({ error: true, messages: "User not found" });
       }
 
       const resetToken = uuidv4();
       const hashedToken = bcrypt.hashSync(resetToken, 10);
       const expiresAt = Date.now() + 3600000; // 1 hour
 
-      const newPasswordReset = new PasswordReset({
+      const newPasswordReset = new UserPasswordReset({
         userId: user._id,
         resetToken: hashedToken,
         createdAt: Date.now(),
@@ -257,27 +259,27 @@ exports.resetPassword = (req, res) => {
             .then(() => {
               res
                 .status(200)
-                .json({ error: false, msg: "Password reset email sent" });
+                .json({ error: false, messages: "Password reset email sent" });
             })
             .catch((error) => {
               console.error("Error sending reset email:", error);
               res
                 .status(500)
-                .json({ error: true, msg: "Error sending reset email" });
+                .json({ error: true, messages: "Error sending reset email" });
             });
         })
         .catch((error) => {
           console.error("Error saving password reset record:", error);
           res
             .status(500)
-            .json({ error: true, msg: "Error processing reset request" });
+            .json({ error: true, messages: "Error processing reset request" });
         });
     })
     .catch((error) => {
       console.error("Error finding user:", error);
       res
         .status(500)
-        .json({ error: true, msg: "Error processing reset request" });
+        .json({ error: true, messages: "Error processing reset request" });
     });
 };
 
@@ -285,7 +287,7 @@ exports.resetPassword = (req, res) => {
 exports.verifyResetPassword = (req, res) => {
   const { resetToken, newPassword } = req.body;
 
-  PasswordReset.find()
+  UserPasswordReset.find()
     .then((passwordResets) => {
       const passwordReset = passwordResets.find((pr) =>
         bcrypt.compareSync(resetToken, pr.resetToken)
@@ -294,7 +296,7 @@ exports.verifyResetPassword = (req, res) => {
       if (!passwordReset) {
         return res
           .status(400)
-          .json({ error: true, msg: "Invalid reset token" });
+          .json({ error: true, messages: "Invalid reset token" });
       }
 
       const { userId, expiresAt } = passwordReset;
@@ -302,14 +304,16 @@ exports.verifyResetPassword = (req, res) => {
       if (expiresAt < Date.now()) {
         return res
           .status(400)
-          .json({ error: true, msg: "Reset token has expired" });
+          .json({ error: true, messages: "Reset token has expired" });
       }
 
       // Update user password
       User.findById(userId)
         .then((user) => {
           if (!user) {
-            return res.status(400).json({ error: true, msg: "User not found" });
+            return res
+              .status(400)
+              .json({ error: true, messages: "User not found" });
           }
 
           // Hash new password
@@ -321,11 +325,11 @@ exports.verifyResetPassword = (req, res) => {
                 .save()
                 .then(() => {
                   // Delete the password reset token from the database
-                  PasswordReset.deleteOne({ _id: passwordReset._id })
+                  UserPasswordReset.deleteOne({ _id: passwordReset._id })
                     .then(() => {
                       res.status(200).json({
                         success: true,
-                        msg: "Password reset successfully",
+                        messages: "Password reset successfully",
                       });
                     })
                     .catch((error) => {
@@ -335,33 +339,41 @@ exports.verifyResetPassword = (req, res) => {
                       );
                       res
                         .status(500)
-                        .json({ error: true, msg: "Failed to reset password" });
+                        .json({
+                          error: true,
+                          messages: "Failed to reset password",
+                        });
                     });
                 })
                 .catch((error) => {
                   console.error("Error saving new password:", error);
                   res
                     .status(500)
-                    .json({ error: true, msg: "Failed to reset password" });
+                    .json({
+                      error: true,
+                      messages: "Failed to reset password",
+                    });
                 });
             })
             .catch((error) => {
               console.error("Error hashing new password:", error);
               res
                 .status(500)
-                .json({ error: true, msg: "Failed to reset password" });
+                .json({ error: true, messages: "Failed to reset password" });
             });
         })
         .catch((error) => {
           console.error("Error finding user:", error);
           res
             .status(500)
-            .json({ error: true, msg: "Failed to reset password" });
+            .json({ error: true, messages: "Failed to reset password" });
         });
     })
     .catch((error) => {
       console.error("Error finding password reset token:", error);
-      res.status(500).json({ error: true, msg: "Failed to reset password" });
+      res
+        .status(500)
+        .json({ error: true, messages: "Failed to reset password" });
     });
 };
 
@@ -372,11 +384,11 @@ exports.update = (req, res) => {
   User.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then((data) => {
       if (!data) {
-        res.status(404).send({ message: "Data can't be updated!" });
+        res.status(404).send({ messages: "Data can't be updated!" });
       }
-      res.send({ message: "Data updated successfully!" });
+      res.send({ messages: "Data updated successfully!" });
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ messages: err.messages }));
 };
 
 // Delete data
@@ -386,11 +398,11 @@ exports.delete = (req, res) => {
   User.findOneAndDelete(id)
     .then((data) => {
       if (!data) {
-        res.status(404).send({ message: "Data can't be deleted!" });
+        res.status(404).send({ messages: "Data can't be deleted!" });
       }
-      res.send({ message: "Data deleted successfully!" });
+      res.send({ messages: "Data deleted successfully!" });
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ messages: err.messages }));
 };
 
 // Login Google
