@@ -1,7 +1,7 @@
 const Admin = require("../models/admin.models");
 const AdminVerification = require("../models/adminVerification");
-const AdminPasswordReset = require("../models/adminPassReset.models");
 const sendVerificationEmail = require("../services/adminVerification.services");
+const AdminPasswordReset = require("../models/adminPassReset.models");
 const sendResetPasswordEmail = require("../services/adminPassReset.services");
 const response = require("../config/response");
 const { v4: uuidv4 } = require("uuid");
@@ -199,35 +199,78 @@ exports.verifyEmail = (req, res) => {
 };
 
 // Login account
+// exports.login = async (data) => {
+//   try {
+//     const admin = await Admin.findOne({ userName: data.userName });
+//     if (!admin) {
+//       throw new Error("Username not found!");
+//     }
+
+//     const match = await argon2.verify(admin.password, data.password);
+//     if (!match) {
+//       throw new Error("Wrong password!");
+//     }
+
+//     // Check status account
+//     if (!admin.verified) {
+//       throw new Error("Email not verified!");
+//     }
+
+//     // Check status role
+//     if (admin.role !== 1) {
+//       throw new Error("Unauthorized role!");
+//     }
+
+//     const token = jwt.sign(
+//       { userName: admin.userName },
+//       process.env.JWT_SECRET
+//     );
+//     return { message: "Login Successful", token };
+//   } catch (error) {
+//     throw new Error("Login Failed!");
+//   }
+// };
+
 exports.login = async (data) => {
   try {
+    // Find admin based on username
     const admin = await Admin.findOne({ userName: data.userName });
     if (!admin) {
+      console.error("Username not found:", data.userName);
       throw new Error("Username not found!");
     }
 
+    // Verify password
     const match = await argon2.verify(admin.password, data.password);
     if (!match) {
+      console.error("Wrong password for userName:", data.userName);
       throw new Error("Wrong password!");
     }
 
     // Check status account
     if (!admin.verified) {
+      console.error("Email not verified for userName:", data.userName);
       throw new Error("Email not verified!");
     }
 
     // Check status role
     if (admin.role !== 1) {
+      console.error("Unauthorized role for userName:", data.userName);
       throw new Error("Unauthorized role!");
     }
 
+    // Create JWT token
     const token = jwt.sign(
-      { userName: admin.userName },
-      process.env.JWT_SECRET
+      { userName: admin.userName, role: admin.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
     );
+
+    console.log("Login successful for userName:", data.userName);
     return { message: "Login Successful", token };
   } catch (error) {
-    throw new Error("Login Failed!");
+    console.error("Login error:", error.message);
+    throw new Error(error.message);
   }
 };
 

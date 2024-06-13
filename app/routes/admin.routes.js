@@ -1,9 +1,9 @@
 module.exports = (app) => {
   const admin = require("../controllers/admin.controllers");
   const { register } = require("../controllers/admin.controllers");
-  const auth = require("../controllers/adminAuth.controller");
-  const verification = require("../middelware/jwtVerify");
+  const adminService = require("../controllers/adminAuth.controller");
   const validateRegistration = require("../middelware/validateRegristation");
+  const { auth, isAdmin } = require("../middelware/subsAuth");
   const r = require("express").Router();
   const dotenv = require("dotenv");
 
@@ -30,7 +30,7 @@ module.exports = (app) => {
   r.get("/verify/:uniqueString", admin.verifyEmail);
 
   // Login account
-  r.post("/signin", auth.handleLogin);
+  r.post("/signin", adminService.handleLogin);
 
   // Password reset
   r.post("/forgot-password", (req, res) => {
@@ -43,14 +43,23 @@ module.exports = (app) => {
   });
 
   // Show data
-  r.get("/list", verification, admin.findAll);
-  r.get("/list/:id", admin.show);
+  r.get("/list", auth, isAdmin, (req, res) => {
+    admin.findAll(req, res);
+  });
+
+  r.get("/list/:id", auth, isAdmin, (req, res) => {
+    admin.show(req, res);
+  });
 
   // Update data
-  r.put("/update/:id", admin.update);
+  r.put("/update/:id", auth, isAdmin, (req, res) => {
+    admin.update(req, res);
+  });
 
   // Delete data
-  r.delete("/delete/:id", admin.delete);
+  r.delete("/delete/:id", auth, isAdmin, (req, res) => {
+    admin.delete(req, res);
+  });
 
   app.use("/admin", r);
 };
