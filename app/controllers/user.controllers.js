@@ -1,7 +1,7 @@
 const User = require("../models/user.models");
 const UserVerification = require("../models/userVerification");
-const UserPasswordReset = require("../models/userPassReset.models");
 const sendVerificationEmail = require("../services/userVerification.services");
+const UserPasswordReset = require("../models/userPassReset.models");
 const sendResetPasswordEmail = require("../services/userPassReset.services");
 const response = require("../config/response");
 const { google } = require("googleapis");
@@ -202,30 +202,44 @@ exports.verifyEmail = (req, res) => {
 // Login account
 exports.login = async (data) => {
   try {
+    // Find user based on username
     const user = await User.findOne({ userName: data.userName });
     if (!user) {
+      console.error("Username not found:", data.userName);
       throw new Error("Username not found!");
     }
 
+    // Verify password
     const match = await argon2.verify(user.password, data.password);
     if (!match) {
+      console.error("Wrong password for userName:", data.userName);
       throw new Error("Wrong password!");
     }
 
     // Check status account
     if (!user.verified) {
+      console.error("Email not verified for userName:", data.userName);
       throw new Error("Email not verified!");
     }
 
     // Check status role
     if (user.role !== 2) {
+      console.error("Unauthorized role for userName:", data.userName);
       throw new Error("Unauthorized role!");
     }
 
-    const token = jwt.sign({ userName: user.userName }, process.env.JWT_SECRET);
-    return { messages: "Login Successful", token };
+    // Create JWT token
+    const token = jwt.sign(
+      { userName: user.userName, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    console.log("Login successful for userName:", data.userName);
+    return { message: "Login Successful", token };
   } catch (error) {
-    throw new Error("Login Failed!");
+    console.error("Login error:", error.message);
+    throw new Error(error.message);
   }
 };
 
@@ -337,22 +351,18 @@ exports.verifyResetPassword = (req, res) => {
                         "Error deleting password reset token:",
                         error
                       );
-                      res
-                        .status(500)
-                        .json({
-                          error: true,
-                          messages: "Failed to reset password",
-                        });
+                      res.status(500).json({
+                        error: true,
+                        messages: "Failed to reset password",
+                      });
                     });
                 })
                 .catch((error) => {
                   console.error("Error saving new password:", error);
-                  res
-                    .status(500)
-                    .json({
-                      error: true,
-                      messages: "Failed to reset password",
-                    });
+                  res.status(500).json({
+                    error: true,
+                    messages: "Failed to reset password",
+                  });
                 });
             })
             .catch((error) => {

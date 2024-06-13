@@ -1,8 +1,9 @@
 module.exports = (app) => {
   const user = require("../controllers/user.controllers");
   const { register } = require("../controllers/user.controllers");
-  const auth = require("../controllers/userAuth.controller");
+  const userService = require("../controllers/userAuth.controller");
   const validateRegistration = require("../middelware/validateRegristation");
+  const { auth, isAdmin } = require("../middelware/subsAuth");
   const r = require("express").Router();
 
   // Register account
@@ -17,7 +18,7 @@ module.exports = (app) => {
   r.get("/verify/:uniqueString", user.verifyEmail);
 
   // Login account
-  r.post("/signin", auth.handleLogin);
+  r.post("/signin", userService.handleLogin);
 
   // Password reset
   r.post("/forgot-password", (req, res) => {
@@ -30,10 +31,14 @@ module.exports = (app) => {
   });
 
   // Update data
-  r.put("/update/:id", user.update);
+  r.put("/update/:id", auth, (req, res) => {
+    user.update(req, res);
+  });
 
   // Delete data
-  r.delete("/delete/:id", user.delete);
+  r.delete("/delete/:id", auth, isAdmin, (req, res) => {
+    user.delete(req, res);
+  });
 
   // Google Auth
   r.get("/auth/google", user.googleAuthRedirect);
